@@ -1,0 +1,537 @@
+<title>宅配簽收</title>
+<style>
+/* layout: single scrolling column sized like a courier PDA screen, header strip + form fields + full-bleed signature pad + sticky action bar */
+:root {
+  --bg: #eef1f0;
+  --surface: #ffffff;
+  --ink: #1b2420;
+  --ink-dim: #5c6a63;
+  --line: #d7ddda;
+  --accent: #2f6b4f;
+  --accent-ink: #ffffff;
+  --stamp: #c4473a;
+  --font-display: 'Barlow Condensed', 'Noto Sans TC', sans-serif;
+  --font-body: 'Noto Sans TC', 'Barlow', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11140f;
+    --surface: #1b2019;
+    --ink: #eef1ec;
+    --ink-dim: #9aa79e;
+    --line: #313830;
+    --accent: #5fae84;
+    --accent-ink: #0c1310;
+    --stamp: #e06a5a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11140f;
+  --surface: #1b2019;
+  --ink: #eef1ec;
+  --ink-dim: #9aa79e;
+  --line: #313830;
+  --accent: #5fae84;
+  --accent-ink: #0c1310;
+  --stamp: #e06a5a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  margin: 0;
+  min-height: 100%;
+}
+.frame {
+  max-width: 460px;
+  margin: 0 auto;
+  padding-inline: 16px;
+  padding-block: 18px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.devicebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-dim);
+  letter-spacing: 0.03em;
+}
+.devicebar .battery {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.devicebar .battery .cell {
+  width: 18px;
+  height: 9px;
+  border: 1px solid var(--ink-dim);
+  border-radius: 2px;
+  position: relative;
+}
+.devicebar .battery .cell::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  width: 70%;
+  background: var(--ink-dim);
+  border-radius: 1px;
+}
+
+.app-header {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.app-header .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+.app-header h1 {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.field label {
+  font-size: 11px;
+  color: var(--ink-dim);
+  letter-spacing: 0.04em;
+}
+.field input {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  padding: 6px 2px;
+  width: 100%;
+}
+.field input:focus {
+  outline: none;
+  border-bottom-color: var(--accent);
+}
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.sig-card h2 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+.sig-card .hint {
+  font-size: 12px;
+  color: var(--ink-dim);
+  margin: 0 0 12px;
+}
+.sig-wrap {
+  position: relative;
+  border: 1.5px dashed var(--line);
+  border-radius: 10px;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 39px, var(--line) 39px 40px);
+  background-position: 0 60%;
+  overflow: hidden;
+  touch-action: none;
+}
+.sig-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 180px;
+  touch-action: none;
+}
+.sig-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-dim);
+  font-size: 13px;
+  pointer-events: none;
+  transition: opacity 120ms ease-out;
+}
+.sig-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.linkbtn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 4px;
+  cursor: pointer;
+}
+.linkbtn:focus-visible { outline: 2px solid var(--accent); border-radius: 4px; }
+
+.confirm-bar {
+  position: sticky;
+  bottom: 0;
+  padding-top: 6px;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px);
+  background: linear-gradient(to top, var(--bg) 60%, transparent);
+}
+.confirm-btn {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 15px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  background: var(--accent);
+  color: var(--accent-ink);
+  cursor: pointer;
+  transition: transform 100ms ease-out, opacity 120ms ease-out;
+}
+.confirm-btn:active { transform: scale(0.98); }
+.confirm-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.confirm-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* done state */
+.done-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding-block: 24px 8px;
+}
+.stamp {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  border: 3px solid var(--stamp);
+  color: var(--stamp);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-8deg);
+  animation: stamp-in 320ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.stamp svg { width: 46px; height: 46px; }
+@keyframes stamp-in {
+  from { opacity: 0; transform: rotate(-8deg) scale(1.6); }
+  to { opacity: 1; transform: rotate(-8deg) scale(1); }
+}
+.done-screen h2 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  margin: 0;
+}
+.done-screen p {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: 13px;
+  max-width: 30ch;
+}
+.receipt {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+.receipt .row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+.receipt .row span:first-child { color: var(--ink-dim); }
+.receipt .row span:last-child { font-family: var(--font-mono); text-align: right; }
+.receipt .sig-preview {
+  border-top: 1px dashed var(--line);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.receipt .sig-preview span { color: var(--ink-dim); font-size: 11px; }
+.receipt img { max-width: 100%; height: 56px; object-fit: contain; object-position: left center; }
+
+.reset-btn {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 13px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  cursor: pointer;
+}
+.reset-btn:active { transform: scale(0.99); }
+
+[hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp { animation: none; }
+}
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<div class="frame">
+  <div class="devicebar">
+    <span id="clock">09:41</span>
+    <span class="battery"><span class="cell"></span>行動簽收終端</span>
+  </div>
+
+  <div class="app-header">
+    <span class="eyebrow">Proof of Delivery</span>
+    <h1>包裹簽收確認</h1>
+  </div>
+
+  <section id="form-screen">
+    <div class="card">
+      <div class="field-grid">
+        <div class="field-row">
+          <div class="field">
+            <label for="f-tracking">配送單號</label>
+            <input id="f-tracking" type="text" inputmode="text" value="TW4112604110" />
+          </div>
+          <div class="field">
+            <label for="f-date">配送日期</label>
+            <input id="f-date" type="text" inputmode="text" value="2026/11/04" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-recipient">收件人</label>
+          <input id="f-recipient" type="text" inputmode="text" value="陳先生" />
+        </div>
+        <div class="field">
+          <label for="f-item">品項</label>
+          <input id="f-item" type="text" inputmode="text" value="家用日常用品" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card sig-card">
+      <h2>觸控簽名</h2>
+      <p class="hint">請收件人於下方欄位用手指簽名，以確認已收到包裹。</p>
+      <div class="sig-wrap">
+        <canvas id="sig-canvas"></canvas>
+        <div class="sig-placeholder" id="sig-placeholder">在這裡簽名</div>
+      </div>
+      <div class="sig-actions">
+        <button class="linkbtn" id="clear-btn" type="button">清除重簽</button>
+      </div>
+    </div>
+
+    <div class="confirm-bar">
+      <button class="confirm-btn" id="confirm-btn" type="button" disabled>確認簽收</button>
+    </div>
+  </section>
+
+  <section id="done-screen" class="done-screen" hidden>
+    <div class="stamp" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6 9 17l-5-5"/>
+      </svg>
+    </div>
+    <h2>簽收完成</h2>
+    <p>包裹已確認送達，簽名已留存於本次簽收紀錄。</p>
+
+    <div class="receipt">
+      <div class="row"><span>配送單號</span><span id="r-tracking"></span></div>
+      <div class="row"><span>配送日期</span><span id="r-date"></span></div>
+      <div class="row"><span>收件人</span><span id="r-recipient"></span></div>
+      <div class="row"><span>品項</span><span id="r-item"></span></div>
+      <div class="row"><span>簽收時間</span><span id="r-time"></span></div>
+      <div class="sig-preview">
+        <span>收件人簽名</span>
+        <img id="r-sig-img" alt="收件人簽名" />
+      </div>
+    </div>
+
+    <button class="reset-btn" id="reset-btn" type="button">清除並重新簽收（下一次拍攝）</button>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var clockEl = document.getElementById('clock');
+  function tick() {
+    try {
+      var d = new Date();
+      var h = String(d.getHours()).padStart(2, '0');
+      var m = String(d.getMinutes()).padStart(2, '0');
+      clockEl.textContent = h + ':' + m;
+    } catch (e) {}
+  }
+  tick();
+  setInterval(tick, 15000);
+
+  var canvas = document.getElementById('sig-canvas');
+  var ctx = canvas.getContext('2d');
+  var placeholder = document.getElementById('sig-placeholder');
+  var confirmBtn = document.getElementById('confirm-btn');
+  var clearBtn = document.getElementById('clear-btn');
+  var hasInk = false;
+  var drawing = false;
+  var last = null;
+  var dpr = Math.max(1, window.devicePixelRatio || 1);
+
+  function resizeCanvas() {
+    var rect = canvas.getBoundingClientRect();
+    var prev = hasInk ? canvas.toDataURL() : null;
+    canvas.width = Math.round(rect.width * dpr);
+    canvas.height = Math.round(rect.height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    strokeStyle();
+    if (prev) {
+      var img = new Image();
+      img.onload = function () {
+        ctx.drawImage(img, 0, 0, rect.width, rect.height);
+      };
+      img.src = prev;
+    }
+  }
+
+  function strokeStyle() {
+    var ink = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim() || '#1b2420';
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 2.6;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  }
+
+  function pointFromEvent(e) {
+    var rect = canvas.getBoundingClientRect();
+    var touch = (e.touches && e.touches[0]) || e;
+    return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+  }
+
+  function start(e) {
+    e.preventDefault();
+    drawing = true;
+    last = pointFromEvent(e);
+    if (!hasInk) {
+      hasInk = true;
+      placeholder.style.opacity = '0';
+      confirmBtn.disabled = false;
+    }
+  }
+  function move(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    var p = pointFromEvent(e);
+    ctx.beginPath();
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    last = p;
+  }
+  function end(e) {
+    drawing = false;
+    last = null;
+  }
+
+  canvas.addEventListener('pointerdown', start);
+  canvas.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', end);
+  canvas.addEventListener('touchstart', start, { passive: false });
+  canvas.addEventListener('touchmove', move, { passive: false });
+  canvas.addEventListener('touchend', end);
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  clearBtn.addEventListener('click', function () {
+    var rect = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    hasInk = false;
+    placeholder.style.opacity = '1';
+    confirmBtn.disabled = true;
+  });
+
+  var formScreen = document.getElementById('form-screen');
+  var doneScreen = document.getElementById('done-screen');
+  var resetBtn = document.getElementById('reset-btn');
+
+  confirmBtn.addEventListener('click', function () {
+    if (!hasInk) return;
+
+    document.getElementById('r-tracking').textContent = document.getElementById('f-tracking').value;
+    document.getElementById('r-date').textContent = document.getElementById('f-date').value;
+    document.getElementById('r-recipient').textContent = document.getElementById('f-recipient').value;
+    document.getElementById('r-item').textContent = document.getElementById('f-item').value;
+
+    var now = new Date();
+    var hh = String(now.getHours()).padStart(2, '0');
+    var mm = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('r-time').textContent = hh + ':' + mm;
+
+    document.getElementById('r-sig-img').src = canvas.toDataURL('image/png');
+
+    formScreen.hidden = true;
+    doneScreen.hidden = false;
+  });
+
+  resetBtn.addEventListener('click', function () {
+    var rect = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    hasInk = false;
+    placeholder.style.opacity = '1';
+    confirmBtn.disabled = true;
+    formScreen.hidden = false;
+    doneScreen.hidden = true;
+  });
+})();
+</script>
