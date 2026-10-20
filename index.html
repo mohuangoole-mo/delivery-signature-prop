@@ -1,41 +1,44 @@
 <title>宅配簽收</title>
 <style>
-/* layout: single scrolling column sized like a courier PDA screen, header strip + form fields + full-bleed signature pad + sticky action bar */
+/* layout: courier waybill aesthetic — black/caution-yellow header with hazard stripe, kraft-paper surface, barcode + perforated ticket motifs, red ink stamp on completion */
 :root {
-  --bg: #eef1f0;
-  --surface: #ffffff;
-  --ink: #1b2420;
-  --ink-dim: #5c6a63;
-  --line: #d7ddda;
-  --accent: #2f6b4f;
-  --accent-ink: #ffffff;
-  --stamp: #c4473a;
-  --font-display: 'Barlow Condensed', 'Noto Sans TC', sans-serif;
+  --bg: #f4ede0;
+  --surface: #fffdf7;
+  --ink: #1d1a12;
+  --ink-dim: #7a7261;
+  --line: #e2d8c2;
+  --accent: #ffc82c;
+  --accent-ink: #1d1a12;
+  --rule: #1d1a12;
+  --stamp: #c4342b;
+  --font-display: 'Archivo Black', 'Noto Sans TC', sans-serif;
   --font-body: 'Noto Sans TC', 'Barlow', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #11140f;
-    --surface: #1b2019;
-    --ink: #eef1ec;
-    --ink-dim: #9aa79e;
-    --line: #313830;
-    --accent: #5fae84;
-    --accent-ink: #0c1310;
-    --stamp: #e06a5a;
+    --bg: #15130d;
+    --surface: #211d14;
+    --ink: #f3ead2;
+    --ink-dim: #a69b82;
+    --line: #3a3425;
+    --accent: #ffc82c;
+    --accent-ink: #15130d;
+    --rule: #f3ead2;
+    --stamp: #e8604f;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #11140f;
-  --surface: #1b2019;
-  --ink: #eef1ec;
-  --ink-dim: #9aa79e;
-  --line: #313830;
-  --accent: #5fae84;
-  --accent-ink: #0c1310;
-  --stamp: #e06a5a;
+  --bg: #15130d;
+  --surface: #211d14;
+  --ink: #f3ead2;
+  --ink-dim: #a69b82;
+  --line: #3a3425;
+  --accent: #ffc82c;
+  --accent-ink: #15130d;
+  --rule: #f3ead2;
+  --stamp: #e8604f;
   color-scheme: dark;
 }
 
@@ -87,35 +90,113 @@ body {
   border-radius: 1px;
 }
 
+.hazard {
+  height: 7px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--rule) 0 10px,
+    var(--accent) 10px 20px
+  );
+}
+
 .app-header {
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: var(--rule);
+  color: var(--bg);
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: 16px 16px 14px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.app-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0 24px,
+    rgba(255, 200, 44, 0.08) 24px 26px
+  );
+  pointer-events: none;
+}
+.app-header .top-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
 }
 .app-header .eyebrow {
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  font-size: 10px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  opacity: 0.85;
+  color: var(--accent);
+}
+.app-header .badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--bg);
+  opacity: 0.75;
 }
 .app-header h1 {
   font-family: var(--font-display);
-  font-size: 26px;
-  font-weight: 600;
+  font-size: 30px;
+  font-weight: 400;
   margin: 0;
   letter-spacing: 0.01em;
+  color: var(--accent);
+  text-transform: uppercase;
 }
 
 .card {
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  border: 1.5px solid var(--rule);
+  border-radius: 10px;
   padding: 16px;
+  position: relative;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: -1.5px;
+  height: 0;
+  border-top: 2px dashed var(--line);
+}
+.card.sig-card::before { display: none; }
+.card .ticket-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card .ticket-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.barcode {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 26px;
+  margin-top: 10px;
+}
+.barcode span {
+  background: var(--rule);
+  display: block;
 }
 
 .field-grid {
@@ -130,23 +211,27 @@ body {
   min-width: 0;
 }
 .field label {
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   color: var(--ink-dim);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .field input {
   font-family: var(--font-mono);
   font-size: 15px;
+  font-weight: 500;
   color: var(--ink);
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 2px dotted var(--line);
   padding: 6px 2px;
   width: 100%;
 }
 .field input:focus {
   outline: none;
-  border-bottom-color: var(--accent);
+  border-bottom-color: var(--stamp);
+  border-bottom-style: solid;
 }
 .field-row {
   display: grid;
@@ -156,9 +241,11 @@ body {
 
 .sig-card h2 {
   font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 19px;
+  font-weight: 400;
   margin: 0 0 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
 }
 .sig-card .hint {
   font-size: 12px;
@@ -167,13 +254,24 @@ body {
 }
 .sig-wrap {
   position: relative;
-  border: 1.5px dashed var(--line);
-  border-radius: 10px;
+  border: 2px solid var(--rule);
+  border-radius: 6px;
   background:
     repeating-linear-gradient(to bottom, transparent 0 39px, var(--line) 39px 40px);
   background-position: 0 60%;
   overflow: hidden;
   touch-action: none;
+}
+.sig-wrap::after {
+  content: 'X';
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--ink-dim);
+  font-size: 14px;
+  pointer-events: none;
 }
 .sig-wrap canvas {
   display: block;
@@ -200,13 +298,15 @@ body {
 .linkbtn {
   background: none;
   border: none;
-  color: var(--accent);
-  font-size: 13px;
+  color: var(--stamp);
+  font-family: var(--font-mono);
+  font-size: 12px;
   font-weight: 600;
+  letter-spacing: 0.04em;
   padding: 6px 4px;
   cursor: pointer;
 }
-.linkbtn:focus-visible { outline: 2px solid var(--accent); border-radius: 4px; }
+.linkbtn:focus-visible { outline: 2px solid var(--stamp); border-radius: 4px; }
 
 .confirm-bar {
   position: sticky;
@@ -217,24 +317,27 @@ body {
 }
 .confirm-btn {
   width: 100%;
-  border: none;
-  border-radius: 12px;
+  border: 2px solid var(--rule);
+  border-radius: 8px;
   padding: 15px;
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   background: var(--accent);
   color: var(--accent-ink);
   cursor: pointer;
-  transition: transform 100ms ease-out, opacity 120ms ease-out;
+  box-shadow: 3px 3px 0 var(--rule);
+  transition: transform 100ms ease-out, box-shadow 100ms ease-out, opacity 120ms ease-out;
 }
-.confirm-btn:active { transform: scale(0.98); }
+.confirm-btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--rule); }
 .confirm-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
+  box-shadow: none;
 }
-.confirm-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.confirm-btn:focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
 
 /* done state */
 .done-screen {
@@ -246,26 +349,48 @@ body {
   padding-block: 24px 8px;
 }
 .stamp {
-  width: 92px;
-  height: 92px;
+  width: 128px;
+  height: 128px;
   border-radius: 50%;
-  border: 3px solid var(--stamp);
+  border: 4px solid var(--stamp);
+  outline: 1.5px solid var(--stamp);
+  outline-offset: -8px;
   color: var(--stamp);
   display: flex;
   align-items: center;
   justify-content: center;
-  transform: rotate(-8deg);
+  transform: rotate(-9deg);
   animation: stamp-in 320ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  mix-blend-mode: multiply;
 }
-.stamp svg { width: 46px; height: 46px; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .stamp { mix-blend-mode: normal; }
+}
+:root[data-theme="dark"] .stamp { mix-blend-mode: normal; }
+.stamp .stamp-text {
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1.15;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.stamp .stamp-text small {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  margin-top: 2px;
+}
 @keyframes stamp-in {
-  from { opacity: 0; transform: rotate(-8deg) scale(1.6); }
-  to { opacity: 1; transform: rotate(-8deg) scale(1); }
+  from { opacity: 0; transform: rotate(-9deg) scale(1.6); }
+  to { opacity: 1; transform: rotate(-9deg) scale(1); }
 }
 .done-screen h2 {
   font-family: var(--font-display);
   font-size: 24px;
   margin: 0;
+  text-transform: uppercase;
 }
 .done-screen p {
   margin: 0;
@@ -276,8 +401,8 @@ body {
 .receipt {
   width: 100%;
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  border: 1.5px solid var(--rule);
+  border-radius: 10px;
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -304,13 +429,14 @@ body {
 
 .reset-btn {
   width: 100%;
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  border: 1.5px dashed var(--line);
+  border-radius: 8px;
   padding: 13px;
   background: transparent;
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: 14px;
+  color: var(--ink-dim);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.03em;
   cursor: pointer;
 }
 .reset-btn:active { transform: scale(0.99); }
@@ -323,7 +449,7 @@ body {
 </style>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap">
 
 <div class="frame">
   <div class="devicebar">
@@ -331,13 +457,19 @@ body {
     <span class="battery"><span class="cell"></span>行動簽收終端</span>
   </div>
 
+  <div class="hazard" aria-hidden="true"></div>
+
   <div class="app-header">
-    <span class="eyebrow">Proof of Delivery</span>
-    <h1>包裹簽收確認</h1>
+    <div class="top-row">
+      <span class="eyebrow">Proof of Delivery</span>
+      <span class="badge">No. 04</span>
+    </div>
+    <h1>包裹簽收單</h1>
   </div>
 
   <section id="form-screen">
     <div class="card">
+      <p class="ticket-label">託運單資訊</p>
       <div class="field-grid">
         <div class="field-row">
           <div class="field">
@@ -358,10 +490,11 @@ body {
           <input id="f-item" type="text" inputmode="text" value="家用日常用品" />
         </div>
       </div>
+      <div class="barcode" id="barcode" aria-hidden="true"></div>
     </div>
 
     <div class="card sig-card">
-      <h2>觸控簽名</h2>
+      <h2>收件確認簽名</h2>
       <p class="hint">請收件人於下方欄位用手指簽名，以確認已收到包裹。</p>
       <div class="sig-wrap">
         <canvas id="sig-canvas"></canvas>
@@ -379,9 +512,7 @@ body {
 
   <section id="done-screen" class="done-screen" hidden>
     <div class="stamp" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 6 9 17l-5-5"/>
-      </svg>
+      <span class="stamp-text">送達<br>簽收<small>DELIVERED</small></span>
     </div>
     <h2>簽收完成</h2>
     <p>包裹已確認送達，簽名已留存於本次簽收紀錄。</p>
@@ -405,6 +536,16 @@ body {
 <script>
 (function () {
   'use strict';
+
+  var barcodeEl = document.getElementById('barcode');
+  if (barcodeEl) {
+    var widths = [3,1,2,1,3,2,1,1,4,1,2,3,1,1,2,4,1,3,2,1,1,2,3,1,4,1,2,1,3,2];
+    var html = '';
+    for (var i = 0; i < widths.length; i++) {
+      html += '<span style="width:' + widths[i] + 'px;height:' + (i % 3 === 0 ? '100%' : '70%') + '"></span>';
+    }
+    barcodeEl.innerHTML = html;
+  }
 
   var clockEl = document.getElementById('clock');
   function tick() {
