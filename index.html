@@ -1,6 +1,9 @@
 <title>宅配簽收</title>
 <style>
 /* layout: courier waybill aesthetic — black/caution-yellow header with hazard stripe, kraft-paper surface, barcode + perforated ticket motifs, red ink stamp on completion */
+/* this screen always renders in the same paper-and-ink look, regardless of
+   the viewer's light/dark setting — it's a filming prop and must look
+   identical every time it's opened on set */
 :root {
   --bg: #f4ede0;
   --surface: #fffdf7;
@@ -14,32 +17,7 @@
   --font-display: 'Archivo Black', 'Noto Sans TC', sans-serif;
   --font-body: 'Noto Sans TC', 'Barlow', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #15130d;
-    --surface: #211d14;
-    --ink: #f3ead2;
-    --ink-dim: #a69b82;
-    --line: #3a3425;
-    --accent: #ffc82c;
-    --accent-ink: #15130d;
-    --rule: #f3ead2;
-    --stamp: #e8604f;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #15130d;
-  --surface: #211d14;
-  --ink: #f3ead2;
-  --ink-dim: #a69b82;
-  --line: #3a3425;
-  --accent: #ffc82c;
-  --accent-ink: #15130d;
-  --rule: #f3ead2;
-  --stamp: #e8604f;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -393,10 +371,6 @@ body {
   animation: stamp-in 320ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
   mix-blend-mode: multiply;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .stamp { mix-blend-mode: normal; }
-}
-:root[data-theme="dark"] .stamp { mix-blend-mode: normal; }
 .stamp .stamp-text {
   font-family: var(--font-display);
   font-size: 19px;
