@@ -94,8 +94,7 @@ body {
 .scroll-area {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -103,14 +102,10 @@ body {
   flex: 1;
   min-height: 0;
   padding-inline: 16px;
-  padding-block: 16px 4px;
+  padding-block: 12px 4px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-}
-#form-screen .spacer {
-  flex: 1;
-  min-height: 14px;
+  gap: 10px;
 }
 #done-screen {
   flex: 1;
@@ -209,18 +204,6 @@ body {
   background: var(--line);
 }
 
-.barcode {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 26px;
-  margin-top: 10px;
-}
-.barcode span {
-  background: var(--rule);
-  display: block;
-}
-
 .field-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -261,7 +244,14 @@ body {
   gap: 12px;
 }
 
+.sig-card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
 .sig-card h2 {
+  flex: none;
   font-family: var(--font-display);
   font-size: 19px;
   font-weight: 400;
@@ -270,11 +260,14 @@ body {
   letter-spacing: 0.01em;
 }
 .sig-card .hint {
+  flex: none;
   font-size: 12px;
   color: var(--ink-dim);
   margin: 0 0 12px;
 }
 .sig-wrap {
+  flex: 1;
+  min-height: 60px;
   position: relative;
   border: 2px solid var(--rule);
   border-radius: 6px;
@@ -298,7 +291,7 @@ body {
 .sig-wrap canvas {
   display: block;
   width: 100%;
-  height: 180px;
+  height: 100%;
   touch-action: none;
 }
 .sig-placeholder {
@@ -509,7 +502,6 @@ body {
             <input id="f-item" type="text" inputmode="text" value="家用日常用品" />
           </div>
         </div>
-        <div class="barcode" id="barcode" aria-hidden="true"></div>
       </div>
 
       <div class="card sig-card">
@@ -523,8 +515,6 @@ body {
           <button class="linkbtn" id="clear-btn" type="button">清除重簽</button>
         </div>
       </div>
-
-      <div class="spacer" aria-hidden="true"></div>
 
       <div class="confirm-bar">
         <button class="confirm-btn" id="confirm-btn" type="button" disabled>確認簽收</button>
@@ -558,16 +548,6 @@ body {
 <script>
 (function () {
   'use strict';
-
-  var barcodeEl = document.getElementById('barcode');
-  if (barcodeEl) {
-    var widths = [3,1,2,1,3,2,1,1,4,1,2,3,1,1,2,4,1,3,2,1,1,2,3,1,4,1,2,1,3,2];
-    var html = '';
-    for (var i = 0; i < widths.length; i++) {
-      html += '<span style="width:' + widths[i] + 'px;height:' + (i % 3 === 0 ? '100%' : '70%') + '"></span>';
-    }
-    barcodeEl.innerHTML = html;
-  }
 
   var clockEl = document.getElementById('clock');
   function tick() {
