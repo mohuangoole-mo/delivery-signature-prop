@@ -95,15 +95,24 @@ body {
   flex-direction: column;
 }
 #form-screen {
+  flex: 1;
+  min-height: 0;
   padding-inline: 16px;
   padding-block: 16px 4px;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
+#form-screen .spacer {
+  flex: 1;
+  min-height: 14px;
+}
 #done-screen {
+  flex: 1;
+  min-height: 0;
   padding-inline: 16px;
   padding-block: 16px 20px;
+  justify-content: center;
 }
 
 .app-header {
@@ -509,6 +518,8 @@ body {
           <button class="linkbtn" id="clear-btn" type="button">清除重簽</button>
         </div>
       </div>
+
+      <div class="spacer" aria-hidden="true"></div>
 
       <div class="confirm-bar">
         <button class="confirm-btn" id="confirm-btn" type="button" disabled>確認簽收</button>
